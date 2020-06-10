@@ -1,0 +1,87 @@
+# head(B1)
+train.data <- B1[1:500,c(1,2)]
+train.label <- B1[1:500,c(3)]
+
+head(train.data)
+head(train.label)
+
+
+train.len <- dim(train.data)[1]
+epoch.max <- 100
+
+## b + x1 + x2  input data
+phi <- as.matrix(cbind(1,train.data))
+
+phi <- phi*phi
+
+
+## weight matrix
+W <- matrix(0,nrow=epoch.max, ncol=ncol(phi) )
+
+
+## initialize the weights
+set.seed = 100
+W[1,]  <- runif(ncol(phi))
+
+
+
+terminate <- FALSE  ## terminate status
+
+c0 <- "-1"
+c1 <- '+1'
+
+T <- ifelse(train.label==0, eval(parse(text=c0)), eval(parse(text=c1)))
+
+error.trace <- matrix(,nrow = epoch.max,ncol = 1)
+
+error.trace[1] <- sum(abs(phi %*% W[1,])*T < 0 )/train.len*100
+
+
+
+
+
+
+
+# learning rates η to .01 and .09 
+
+eta <- 0.01
+epsilon <- 0.001 # Stoping criterion
+
+## number of iterations  epochs or tau
+epoch <- 1
+epoch.max <- 100
+
+terminate <- FALSE
+
+while(!terminate){
+    
+    train.index <- sample(1:train.len, replace = FALSE)
+    phi <- phi[train.index,]
+    T <- T[train.index]
+    
+    for(i in 1:train.len){
+        if(epoch == epoch.max){ break}
+        
+        if(abs(W[epoch,]%*%phi[i,])*T[i] <0 ){
+#             print(i)
+            epoch <- epoch + 1
+#             print(epoch)
+#             print(W[epoch,] + eta*phi[i,]*T[i])
+            
+            W[epoch,] <- W[epoch-1,] + eta*phi[i,]*T[i]
+#             print(W[epoch,])
+            
+            
+            error.trace[epoch] <- sum((phi%*%W[epoch-1,])*T < 0 )/train.len*100
+        }
+       
+        }
+                
+    eta <- eta*0.009
+    print('terminate')
+    x <- abs(sum((phi%*%W[epoch,])*T < 0 )/train.len -sum((phi%*%W[epoch-1,])*T < 0 )/train.len) 
+    print(x)
+    terminate <- (epoch > epoch.max) | x <= epsilon
+} 
+
+
